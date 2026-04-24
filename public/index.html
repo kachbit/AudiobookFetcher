@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Audiobook Fetcher</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 40px;
+    }
+    .card {
+      max-width: 600px;
+      margin: auto;
+      background: #020617;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.5);
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    input {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1e293b;
+      outline:0px;
+    }
+    button {
+      background: #6366f1;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #4f46e5; }
+    .log {
+      margin-top: 20px;
+      background: #020617;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>📚 Audiobook Search</h2>
+
+    <label>Session ID</label>
+    <input id="session" placeholder="auto-filled…" />
+
+    <label>Search Query</label>
+    <input id="query" placeholder="the+matter+with+things" />
+
+    <button onclick="runSearch()">Search</button>
+<button onclick="runProcess()" style="margin-top:8px;background:#10b981">
+  Process
+</button>
+
+    <div id="log" class="log"></div>
+  </div>
+
+ <script>
+  const DEFAULT_SESSION_ID = "rlkqgpo157mfl43429sq0bqcv3";
+  const sessionInput = document.getElementById("session");
+  const queryInput = document.getElementById("query");
+  const logEl = document.getElementById("log");
+
+  // ---- initialize sessionId ----
+  const savedSession =
+    localStorage.getItem("PHPSESSID") || DEFAULT_SESSION_ID;
+
+  sessionInput.value = savedSession;
+  localStorage.setItem("PHPSESSID", savedSession);
+
+  // ---- keep localStorage updated on change ----
+  sessionInput.addEventListener("input", () => {
+    localStorage.setItem("PHPSESSID", sessionInput.value.trim());
+  });
+    async function runProcess() {
+    const logEl = document.getElementById("log");
+    logEl.textContent = "⚙️ Processing torrents...\n";
+
+    const res = await fetch("/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const data = await res.json();
+    logEl.textContent = data.log.join("\n");
+  }
+
+  async function runSearch() {
+    const sessionId = sessionInput.value.trim();
+    const query = queryInput.value.trim();
+
+    if (!query) {
+      logEl.textContent = "❌ Please enter a search query.";
+      return;
+    }
+
+    logEl.textContent = "⏳ Working...\n";
+
+    const res = await fetch("/search", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    sessionId,
+    query
+  })
+});
+
+
+    const data = await res.json();
+    logEl.textContent = data.log.join("\n");
+  }
+</script>
+
+</body>
+</html>
